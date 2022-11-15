@@ -1,10 +1,14 @@
 {
-  "name": "SHTP",
+  "name": "SHTP+SH2",
   "apiVersion": "1.0.0",
   "author": "Roberts Kalnins",
   "version": "0.0.1",
-  "description": "SHTP parser",
+  "description": "SHTP parser with SH2 interpretation",
   "extensions": {
+    "SH2": {
+        "type": "HighLevelAnalyzer",
+        "entryPoint": "sh2_analyzer.SH2Hla"
+    },
     "SHTP": {
       "type": "HighLevelAnalyzer",
       "entryPoint": "shtp_analyzer.SHTPHla"
