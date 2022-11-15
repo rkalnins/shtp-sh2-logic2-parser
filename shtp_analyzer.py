@@ -14,5 +14,8 @@ class SHTPHla(HighLevelAnalyzer):
         self.shtp_parser = SHTPParser()
 
     def decode(self, frame: AnalyzerFrame):
-        return self.shtp_parser.decode(frame)
+        f = self.shtp_parser.decode(frame)
+
+        if f is not None:
+            return f[0]
 

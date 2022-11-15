@@ -2,6 +2,8 @@
 from saleae.analyzers import HighLevelAnalyzer, AnalyzerFrame, StringSetting, NumberSetting, ChoicesSetting
 
 class Packet:
+    end_times: list
+    start_times: list
     is_continuation_header: bool
     header_idx: int
     start_time: float
@@ -14,12 +16,15 @@ class Packet:
     data: bytearray
 
     def __init__(self, start_time) -> None:
+        self.end_times = list()
+        self.start_times = list()
         self.is_continuation_header = False
         self.length = 0xFFFF
         self.header_idx = 0
         self.sequence_number = 0xFF
         self.channel = 0xFF
         self.start_time = start_time
+        self.end_time = 0
         self.data = bytearray()
 
 
@@ -69,10 +74,11 @@ class SHTPParser:
                         'length': self.packet.length
                     },
                 )
+                p = self.packet
 
                 self.packet = None
 
-                return f
+                return f, p 
         elif type != 'data':
             pass
 
@@ -92,6 +98,8 @@ class SHTPParser:
                     else:
                         # print(d)
                         self.packet.data.extend(d)
+                        self.packet.start_times.append(frame.start_time)
+                        self.packet.end_times.append(frame.end_time)
 
                 
                 
