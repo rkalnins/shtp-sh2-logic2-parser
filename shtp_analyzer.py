@@ -4,6 +4,7 @@
 from saleae.analyzers import HighLevelAnalyzer, AnalyzerFrame, StringSetting, NumberSetting, ChoicesSetting
 
 class Packet:
+    is_continuation_header: bool
     header_idx: int
     start_time: float
     end_time: float
@@ -15,6 +16,7 @@ class Packet:
     data: bytearray
 
     def __init__(self, start_time) -> None:
+        self.is_continuation_header = False
         self.length = 0xFFFF
         self.header_idx = 0
         self.sequence_number = 0xFF
@@ -60,8 +62,11 @@ class SHTPHla(HighLevelAnalyzer):
 
         if type == 'start' and self.packet is None:
             self.packet = Packet(frame.start_time)
+        elif type == 'start':
+            self.packet.is_continuation_header = True
+            self.packet.header_idx = 0
         elif (type == 'stop' or type == 'data') and self.packet is not None:
-            if self.packet.length == len(self.packet.data):
+            if self.packet.length - 4 == len(self.packet.data):
                 self.packet.end_time = frame.end_time
 
                 f = AnalyzerFrame(
@@ -85,15 +90,23 @@ class SHTPHla(HighLevelAnalyzer):
 
         if self.packet is not None:
             if type == 'data':
-                d = frame.data['data']
+                if self.packet.is_continuation_header:
+                    print('skipping header')
+                    self.packet.header_idx += 1
 
-                if self.packet.header_idx < 4:
-                    self.fill_header(d)
+                    if self.packet.header_idx >= 4:
+                        print("current len:", len(self.packet.data))
+                        self.packet.is_continuation_header = False
                 else:
-                    # print(d)
-                    self.packet.data.extend(d)
+                    d = frame.data['data']
 
-                    print(len(self.packet.data), d)
+                    if self.packet.header_idx < 4:
+                        self.fill_header(d)
+                    else:
+                        # print(d)
+                        self.packet.data.extend(d)
+
+                        print(len(self.packet.data), d)
 
                 
                 
