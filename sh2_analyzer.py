@@ -124,16 +124,16 @@ class SH2Hla(HighLevelAnalyzer):
             'format': 'CH: {{data.channel}} SEQ: {{data.sequence}} DAT[{{data.length}}]: {{data.contents}}'
         },
         'tbase': {
-            'format': 'delta = {{data.delta}}',
+            'format': 'timebase delta = {{data.delta}}',
         },
         'accel': {
-            'format': '[x,y,z] = [{{data.x}} {{data.y}} {{data.z}}]',
+            'format': 'linaccel [x,y,z] = [{{data.x}} {{data.y}} {{data.z}}]',
         },
         'gyro': {
-            'format': '[x,y,z] = [{{data.x}} {{data.y}} {{data.z}}]',
+            'format': 'gyro [x,y,z] = [{{data.x}} {{data.y}} {{data.z}}]',
         },
         'rotv': {
-            'format': '[r,p,y,a] = [{{data.roll}} {{data.pitch}} {{data.yaw}} {{data.accuracy}}]',
+            'format': 'rotv [r,p,y,a] = [{{data.roll}} {{data.pitch}} {{data.yaw}} {{data.accuracy}}]',
         },
     }
 
@@ -175,7 +175,6 @@ class SH2Hla(HighLevelAnalyzer):
             if is_done:
                 data = dict()
                 if self.current_report.report_type == 'gyro' or self.current_report.report_type == 'accel':
-
                     data['x'] = self.current_report.x.getFloating() 
                     data['y'] = self.current_report.x.getFloating() 
                     data['z'] = self.current_report.x.getFloating() 
@@ -185,7 +184,8 @@ class SH2Hla(HighLevelAnalyzer):
                     data['yaw'] = self.current_report.yaw
                 elif self.current_report.report_type == 'tbase':
                     data['delta'] = self.current_report.delta
-
+                
+                print(data)
                 f = AnalyzerFrame(
                         self.current_report.report_type,
                         self.current_report.start_time,
@@ -198,7 +198,7 @@ class SH2Hla(HighLevelAnalyzer):
                 frames.append(f)
 
 
-        return None
+        return frames
 
     def decode(self, frame: AnalyzerFrame):
         fp = self.shtp_parser.decode(frame)
