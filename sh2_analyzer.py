@@ -16,6 +16,9 @@ ROTV_REPORT_LEN = 14
 TIMEBASE_REPORT_ID = 0xFB
 TIMEBASE_REPORT_LEN = 5
 
+TIMEREBASE_REPORT_ID = 0xFA
+TIMEREBASE_REPORT_LEN = 5
+
 class Report:
     report_type: str
     start_time: float
@@ -117,6 +120,17 @@ class TimebaseReport(Report):
         self.delta = 0
         super().__init__()
 
+class TimerebaseReport(Report):
+    report_id = TIMEREBASE_REPORT_ID
+    length = TIMEREBASE_REPORT_LEN
+    report_type = 'trebase'
+
+    delta: int
+
+    def __init__(self):
+        self.delta = 0
+        super().__init__()
+
 
 class SH2Hla(HighLevelAnalyzer):
     result_types = {
@@ -125,6 +139,9 @@ class SH2Hla(HighLevelAnalyzer):
         },
         'tbase': {
             'format': 'timebase delta = {{data.delta}}',
+        },
+        'trebase': {
+            'format': 'timerebase delta = {{data.delta}}',
         },
         'accel': {
             'format': 'linaccel [x,y,z] = [{{data.x}} {{data.y}} {{data.z}}]',
@@ -150,6 +167,8 @@ class SH2Hla(HighLevelAnalyzer):
             elif new_data == ROTV_REPORT_ID:
                 self.current_report = RotVReport()
             elif new_data == TIMEBASE_REPORT_ID:
+                self.current_report = TimebaseReport()
+            elif new_data == TIMEREBASE_REPORT_ID:
                 self.current_report = TimebaseReport()
             else:
                 return False
@@ -182,7 +201,7 @@ class SH2Hla(HighLevelAnalyzer):
                     data['roll'] = self.current_report.roll
                     data['pitch'] = self.current_report.pitch
                     data['yaw'] = self.current_report.yaw
-                elif self.current_report.report_type == 'tbase':
+                elif self.current_report.report_type == 'tbase' or self.current_report == 'trebase':
                     data['delta'] = self.current_report.delta
                 
                 print(data)
