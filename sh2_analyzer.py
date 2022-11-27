@@ -34,12 +34,6 @@ class Report:
     def __init__(self):
         self.byte_data = bytearray()
 
-    def done(self):
-        # convert to floats
-        # get quaternions
-        # etc.
-        pass
-
 class FixedInt16Data:
     lsb: int
     msb: int
@@ -109,6 +103,11 @@ class RotVReport(Report):
         self.pitch = 0
         self.yaw = 0
 
+    def get_rpy():
+        # TODO: convert fixed pt to quaternion RPY 
+        return self.roll, self.pitch, self.yaw
+
+
 class TimebaseReport(Report):
     report_id = TIMEBASE_REPORT_ID
     length = TIMEBASE_REPORT_LEN
@@ -159,6 +158,9 @@ class SH2Hla(HighLevelAnalyzer):
         self.current_report = None
 
     def execute_parser_step(self, new_data, start_time, end_time):
+        # parse data in packet by report type
+
+        # start new report
         if self.current_report is None:
             if new_data == GYRO_REPORT_ID:
                 self.current_report = GyroReport()
@@ -177,7 +179,8 @@ class SH2Hla(HighLevelAnalyzer):
             return False
         else:
             self.current_report.byte_data.extend(new_data.to_bytes(1, 'big'))
-
+            
+            # report is complete
             if self.current_report.length - 1 == len(self.current_report.byte_data):
                 self.current_report.end_time = end_time
                 print('done', self.current_report.report_type, self.current_report.byte_data)
@@ -186,6 +189,7 @@ class SH2Hla(HighLevelAnalyzer):
                 return False
 
     def parse_sh2(self, frame: AnalyzerFrame, p):
+        # all frames generated from parsing reports from this SHTP packet
         frames = []
 
         for i in range(len(p.data)):
@@ -193,6 +197,7 @@ class SH2Hla(HighLevelAnalyzer):
 
             if is_done:
                 data = dict()
+                # read data from reports based on type and generate correct report output
                 if self.current_report.report_type == 'gyro' or self.current_report.report_type == 'accel':
                     data['x'] = self.current_report.x.getFloating() 
                     data['y'] = self.current_report.x.getFloating() 
@@ -213,7 +218,8 @@ class SH2Hla(HighLevelAnalyzer):
                 )
 
                 self.current_report = None
-                        
+                       
+                # multiple SH2 reports can exist per SHTP packet, each report is one frame
                 frames.append(f)
 
 
@@ -221,9 +227,9 @@ class SH2Hla(HighLevelAnalyzer):
 
     def decode(self, frame: AnalyzerFrame):
         fp = self.shtp_parser.decode(frame)
-        print(fp)
 
         if fp is not None:
+            # wait for shtp packet to be compelte
             return self.parse_sh2(fp[0], fp[1])
 
         return fp

@@ -3,6 +3,7 @@ from saleae.analyzers import HighLevelAnalyzer, AnalyzerFrame, StringSetting, Nu
 from common import Packet, SHTPParser
 
 class SHTPHla(HighLevelAnalyzer):
+    # analyzer output format
     result_types = {
         'packet': {
             'format': 'CH: {{data.channel}} SEQ: {{data.sequence}} DAT[{{data.length}}]: {{data.contents}}'
