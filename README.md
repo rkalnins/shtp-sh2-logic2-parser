@@ -29,3 +29,5 @@ Released under MIT license.
 
 Any contributions welcome. This tool was written to facilitate testing in a capstone project in the University
 of Michigan's EECS 473 Advanced Embedded Systems course and only covers the portions of SH2 that were needed.
+
+Please open an issue for feature requests or open a pull request.
